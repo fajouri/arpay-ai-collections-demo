@@ -1,0 +1,61 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-collections}
+      POSTGRES_USER: ${POSTGRES_USER:-collections}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-local_demo_change_me}
+    volumes: [pgdata:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U collections -d collections"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    networks: [demo]
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.0
+    command: ["start-dev", "--import-realm"]
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN:-admin}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-local_admin_change_me}
+    volumes: ["./deploy/keycloak:/opt/keycloak/data/import:ro"]
+    ports: ["8089:8080"]
+    networks: [demo]
+  fake-erp:
+    build: {context: ., dockerfile: src/FakeErpApi/Dockerfile}
+    ports: ["8082:8080"]
+    networks: [demo]
+  mcp:
+    build: {context: ., dockerfile: src/McpServer/Dockerfile}
+    environment: {FAKE_ERP_URL: "http://fake-erp:8080", MCP_PORT: "8080"}
+    ports: ["8083:8080"]
+    depends_on: [fake-erp]
+    networks: [demo]
+  orchestrator:
+    build: {context: ., dockerfile: src/Orchestrator/Dockerfile}
+    environment:
+      ASPNETCORE_URLS: "http://+:8080"
+      FAKE_ERP_URL: "http://fake-erp:8080"
+      MCP_URL: "http://mcp:8080"
+      ConnectionStrings__Audit: "Host=postgres;Port=5432;Database=${POSTGRES_DB:-collections};Username=${POSTGRES_USER:-collections};Password=${POSTGRES_PASSWORD:-local_demo_change_me}"
+      LLM_MODE: ${LLM_MODE:-deterministic}
+      LLM_BASE_URL: ${LLM_BASE_URL:-}
+      LLM_API_KEY: ${LLM_API_KEY:-}
+      LLM_MODEL: ${LLM_MODEL:-}
+    ports: ["8081:8080"]
+    depends_on:
+      postgres: {condition: service_healthy}
+      fake-erp: {condition: service_started}
+      mcp: {condition: service_started}
+    networks: [demo]
+  web:
+    image: nginx:1.27-alpine
+    ports: ["8080:80"]
+    volumes: ["./src/Web:/usr/share/nginx/html:ro"]
+    depends_on: [orchestrator]
+    networks: [demo]
+volumes:
+  pgdata:
+networks:
+  demo:
+    driver: bridge
