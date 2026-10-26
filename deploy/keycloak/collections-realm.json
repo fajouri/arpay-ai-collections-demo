@@ -1,0 +1,77 @@
+{
+  "realm": "collections-demo",
+  "enabled": true,
+  "displayName": "Collections Demo",
+  "roles": {
+    "realm": [
+      {
+        "name": "Employee"
+      },
+      {
+        "name": "Approver"
+      },
+      {
+        "name": "Admin"
+      }
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "collections-web",
+      "enabled": true,
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "redirectUris": [
+        "http://localhost:8080/*"
+      ],
+      "webOrigins": [
+        "http://localhost:8080"
+      ]
+    }
+  ],
+  "users": [
+    {
+      "username": "employee",
+      "enabled": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "DemoOnly123!",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "Employee"
+      ]
+    },
+    {
+      "username": "approver",
+      "enabled": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "DemoOnly123!",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "Approver"
+      ]
+    },
+    {
+      "username": "admin",
+      "enabled": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "DemoOnly123!",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "Admin"
+      ]
+    }
+  ]
+}
