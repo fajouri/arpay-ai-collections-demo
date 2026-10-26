@@ -1,0 +1,11 @@
+# Security test plan before production use
+- [ ] Employee cannot approve or execute a reminder.
+- [ ] Pending or rejected proposals cannot execute.
+- [ ] Repeated execution with same idempotency key creates one fake reminder.
+- [ ] Tenant cannot read another tenant's invoices, proposals or audit.
+- [ ] Role and tenant cannot be spoofed via request body.
+- [ ] Invalid/expired Keycloak JWTs are rejected.
+- [ ] Prompt injection in customer content cannot bypass deterministic policies.
+- [ ] Secrets and personal data are redacted from logs.
+- [ ] DB/audit failure prevents high-risk execution.
+- [ ] MCP arguments are validated and tenant-scoped.
